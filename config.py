@@ -1,13 +1,9 @@
-MODEL = "llama3.2"
-
-N_RESPONDENTS = 50
+MODEL = "qwen3:8b"
+N_RESPONDENTS = 500
 WORKERS = 32
+YEAR = 2027
 
-QUOTA_FILE = "quotas/quotas.csv"
-PROMPT_FILE = "prompts/persona.jinja2"
+PROMPT_FILE = "poll_llm/prompts/poll_question.jinja2"
 
-PROMPT_S3_PATH = (
-    "s3://arthurmanceau/poll_llm/01_prompts/"
-)
-
-RESULT_FILE = "results/results.parquet"
+RESULT_FILE = "s3://arthurmanceau/poll_llm/results/detailed"
+RESULT_FILE_SUMMARY = "s3://arthurmanceau/poll_llm/results/summary"

@@ -7,10 +7,3 @@ def load_template(path):
         return Template(
             f.read()
         )
-
-
-def render(template, person):
-
-    return template.render(
-        **person
-    )

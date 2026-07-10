@@ -1,0 +1,25 @@
+# Question
+
+**Pour qui comptes tu voter à l'élection présidentielle de {{ YEAR }} ?**
+
+# Expected output
+
+Répond selon le schéma suivant:
+{
+    'vote {{ YEAR }}': [Nom du candidat],
+    'raison': [raison du vote, 1 phrase]
+}
+
+# Candidats à l'élection présidentielle de {{ YEAR }}:
+ 
+{% for c in CANDIDATES %}{{ c }}
+{% endfor %}
+
+# Persona
+
+Pour répondre mets toi dans la peau de la personne suivantes:
+
+Sexe: {{ SEX }}
+Age: {{ AGE }}
+CSP: {{ PCS }}
+Département: {{ GEO }}
