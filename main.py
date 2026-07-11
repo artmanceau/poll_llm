@@ -3,8 +3,10 @@ from loguru import logger
 import time
 import polars as pl
 from dotenv import load_dotenv
+import s3fs
+import posixpath
 
-from config import MODEL, N_RESPONDENTS, WORKERS, PROMPT_FILE, RESULT_FILE, RESULT_FILE_SUMMARY, YEAR
+from config import MODEL, N_RESPONDENTS, WORKERS, PROMPT_FILE, YEAR, VERSION
 
 from quotas.get_quotas_data import (
     get_quotas,
@@ -19,8 +21,11 @@ from prompts.candidates import (
     CANDIDATES
 )
 
+RESULT_PATH = "s3://arthurmanceau/poll_llm/results/"
+PROMPT_PATH = "s3://arthurmanceau/poll_llm/llm_prompts/"
 
-def summary(df, year):
+
+def get_summary(df, year):
     n = len(df)
     return (
         df
@@ -41,7 +46,6 @@ def summary(df, year):
 async def main():
 
     start = time.time()
-    ts = (start)
 
     load_dotenv()
 
@@ -55,12 +59,16 @@ async def main():
     logger.info(
         "Generating synthetic population based on quotas"
     )
+    
+    # 1. Get representative sample
 
     quotas = get_quotas(N_RESPONDENTS)
 
     logger.success(
         f"Generated {quotas.height} quota profiles (data from 2023)",
     )
+ 
+    # 2. Make LLMs vote
 
     template = load_template(
         PROMPT_FILE
@@ -78,28 +86,54 @@ async def main():
         WORKERS
     )
 
+    # 3. Save and process results
+
     logger.info(
         f"Received {len(results)} model responses",
     )
 
-    df = pl.DataFrame(
+    detailed = pl.DataFrame(
         results
     )
 
-    result_summary_2027 = summary(
-        df, 2027
+    summary = get_summary(
+        detailed, YEAR
     )
 
-    print(2027)
-    print(result_summary_2027)
+    logger.success(YEAR)
+    logger.success(summary)
 
-    df.write_csv(
-        RESULT_FILE + f'{YEAR}_{ts}.csv'
+    # Sample is stored
+    detailed_path = posixpath.join(
+        "s3://arthurmanceau",
+        "poll_llm",
+        "results",
+        VERSION,
+        MODEL,
+        str(YEAR),
+        str(N_RESPONDENTS),
+        "detailed.csv",
     )
+    detailed.write_csv(detailed_path)
 
-    result_summary_2027.write_csv(
-        RESULT_FILE_SUMMARY + f'{YEAR}_{ts}.csv'
+    # Aggregated results
+    summary_path = posixpath.join(
+        "s3://arthurmanceau",
+        "poll_llm",
+        "results",
+        VERSION,
+        MODEL,
+        str(YEAR),
+        str(N_RESPONDENTS),
+        "summary.csv",
     )
+    summary.write_csv(summary_path)
+
+    # Save prompt for audit
+    fs = s3fs.S3FileSystem()
+    prompt_path = posixpath.join(PROMPT_PATH, VERSION, "prompt_template.jinja2")
+    with fs.open(prompt_path, "w", encoding="utf-8") as f:
+        f.write(template.render())
 
     logger.info(f"Completed successfully in {time.time() - start:.2f}s")
 

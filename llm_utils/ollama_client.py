@@ -22,6 +22,7 @@ def ask(
     response = ollama.chat(
         model=model,
         format=get_vote_schema(year),
+        think=False,
         messages=[
             {
                 "role": "system",
@@ -36,7 +37,6 @@ def ask(
             "temperature": 0.8
         }
     )
-
     answer = json.loads(
         response["message"]["content"]
     )

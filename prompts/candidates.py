@@ -1,32 +1,32 @@
 # Candidats à l'élection présidentielle de 2027
 candidates_2027 = [
-    "Nathalie Arthaud (FO)",
+    "Nathalie Arthaud (Lutte ouvrière)",
+    "Fabien Roussel (Parti communiste français)",
     "Jean-Luc Mélenchon (La France Insoumise)",
-    "Fabien Roussel (PCF)",
-    "Marine Tondelier (Les Ecologistes)",
-    "Raphaël Glucksmann (PS/Place Publique)",
+    "Marine Tondelier (Les Écologistes)",
+    "Raphaël Glucksmann (Parti socialiste / Place Publique)",
     "Gabriel Attal (Ensemble)",
     "Édouard Philippe (Horizon)",
     "Bruno Retailleau (Les Républicains)",
-    "Nicolas Dupont-Aignan (DLF)",
-    "Marine Le Pen (Rassemblement National)",
+    "Nicolas Dupont-Aignan (Debout la France)",
+    "Marine Le Pen (Rassemblement national)",
     "Éric Zemmour (Reconquête)",
 ]
 
 # Candidats à l'élection présidentielle de 2022
 candidates_2022 = [
-    "Nathalie Arthaud (FO)",
-    "Fabien Roussel (PCF)",
-    "Emmanuel Macron (La République En Marche)",
-    "Jean Lassalle",
-    "Marine Le Pen (Rassemblement National)",
+    "Nathalie Arthaud (Lutte ouvrière)",
+    "Fabien Roussel (Parti communiste français)",
+    "Emmanuel Macron (La République en marche)",
+    "Jean Lassalle (Résistons)",
+    "Marine Le Pen (Rassemblement national)",
     "Éric Zemmour (Reconquête)",
-    "Jean-Luc Mélenchon (La France Insoumise)",
+    "Jean-Luc Mélenchon (La France insoumise)",
     "Anne Hidalgo (Parti Socialiste)",
-    "Yannick Jadot (Les Ecologistes)",
+    "Yannick Jadot (Europe Écologie Les Verts)",
     "Valérie Pécresse (Les Républicains)",
-    "Philippe Poutou (NPA)",
-    "Nicolas Dupont-Aignan (DLF)",
+    "Philippe Poutou (Nouveau Parti anticapitaliste)",
+    "Nicolas Dupont-Aignan (Debout la France)",
 ]
 
 CANDIDATES = {

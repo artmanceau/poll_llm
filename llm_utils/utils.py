@@ -12,7 +12,6 @@ def render(template, person, year):
         )
     )
 
-
 def get_vote_schema(year):
     return {
         "type": "object",

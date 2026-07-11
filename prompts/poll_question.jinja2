@@ -1,6 +1,6 @@
 # Question
 
-**Pour qui comptes tu voter à l'élection présidentielle de {{ YEAR }} ?**
+**Pour qui comptes tu voter au premier tour de l'élection présidentielle de {{ YEAR }} ?**
 
 # Expected output
 
@@ -15,6 +15,26 @@ Répond selon le schéma suivant:
 {% for c in CANDIDATES %}{{ c }}
 {% endfor %}
 
+# Anciens présidents de la Vème République
+
+Charles de Gaulle (1959-1969) — UNR puis UD-Ve
+Georges Pompidou (1969-1974) — UDR
+Valéry Giscard d'Estaing (1974-1981) — FNRI puis PR
+François Mitterrand (1981-1995) — PS
+Jacques Chirac (1995-2007) — RPR puis UMP
+Nicolas Sarkozy (2007-2012) — UMP
+François Hollande (2012-2017) — PS
+Emmanuel Macron (2017-2022) — LREM puis RE
+
+# Mode de scrutin
+
+L'election se déroule en deux tours. A l'issue du premier tour, si un candidat a récolté plus de 50% des voix il est élu.
+Si aucun des candidats n'obtient plus de 50% des suffrages, un second tour a lieu entre les deux candidats qui ont obtenu les plus de voix au premier tour.
+Le premier tour aura lieu en avril 2027 et le second tour 15 jours après. 
+Tu sais que ce mode de scrutin conduit certains electeurs à "voter utile", c'est à dire à concentrer leur voix sur un candidat qui a le plus de chance d'arriver au second tour.
+Il est aussi possible de s'abstenir, c'est à dire ne pas aller voter. Dans ce cas réponds, 'Abstention'
+Il est enfin possible d'aller voter et de voter blanc ou nul (ne pas mettre du bulletin dans l'enveloppe ou mettre un bulletin non valide). Dans ce cas réponds, 'Blanc/Nul'
+
 # Persona
 
 Pour répondre mets toi dans la peau de la personne suivantes:
@@ -22,4 +42,6 @@ Pour répondre mets toi dans la peau de la personne suivantes:
 Sexe: {{ SEX }}
 Age: {{ AGE }}
 CSP: {{ PCS }}
-Département: {{ GEO }}
+Bassin de vie: {{ GEO }}
+
+REPONSE:
