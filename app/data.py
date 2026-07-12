@@ -209,15 +209,4 @@ def load_poll_data(
     )
 
 
-    polls = polls.filter(
-        pl.col("date")
-        >
-        pl.date(
-            year,
-            1,
-            1,
-        )
-    )
-
-
     return official, polls

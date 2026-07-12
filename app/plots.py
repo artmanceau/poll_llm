@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import polars as pl
-
+import streamlit as st
 import plotly.graph_objects as go
 
 from statsmodels.nonparametric.smoothers_lowess import lowess
@@ -161,6 +161,11 @@ def poll_evolution_plot(
 
     fig = go.Figure()
 
+    st.write(polls)
+
+    sondeur = st.multiselect('Sondeur', polls.unique('Sondeur').get_column('Sondeur').to_list(), default=polls.unique('Sondeur').get_column('Sondeur').to_list())
+    min_echantillon, max_echantillon = st.slider("Taille de l'échantillon",  polls.get_column('Échantillon').min(), polls.get_column('Échantillon').max(), (polls.get_column('Échantillon').min(), polls.get_column('Échantillon').max()))
+    min_date, max_date = st.slider("Date du sondage",  polls.get_column('date').min(), polls.get_column('date').max(), (polls.get_column('date').min(), polls.get_column('date').max()))
 
     if mode == "candidate":
 
@@ -178,6 +183,7 @@ def poll_evolution_plot(
         )
 
         colors = BLOC_COLORS
+
 
         polls = (
             polls
@@ -237,11 +243,16 @@ def poll_evolution_plot(
         fig.add_hline(
             y=true_score,
             line_width=2,
+            line_dash='longdash',
             line_color=colors[item],
             annotation_text=f"{true_score:.1f}%",
-            annotation_position="right",
+            annotation_position="bottom right"
         )
 
+        if sondeur:
+            polls = polls.filter(pl.col('Sondeur').is_in(sondeur))
+
+        polls = polls.filter(pl.col('Échantillon')<=max_echantillon).filter(pl.col('Échantillon')>=min_echantillon).filter(pl.col('date')>=min_date).filter(pl.col('date')<=max_date)
 
         pdf = (
             polls
@@ -287,7 +298,7 @@ def poll_evolution_plot(
                 ),
                 y=smooth[:,1],
                 mode="lines",
-                name=f"{item} tendance",
+                name=item,
                 line=dict(
                     color=colors[item],
                     width=3,
