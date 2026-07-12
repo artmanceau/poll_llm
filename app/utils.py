@@ -43,6 +43,6 @@ def prepare_comparison_df(
             .pipe(
                 add_source,
                 "Sondages tendance",
-            ),
+            )
         ]
     )

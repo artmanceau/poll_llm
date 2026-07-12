@@ -1,5 +1,5 @@
 import colorsys
-
+import polars as pl
 
 BUCKET_ROOT = "s3://arthurmanceau/poll_llm/results"
 
@@ -103,6 +103,28 @@ def adjust_color(hex_color, factor):
         int(g * 255),
         int(b * 255),
     )
+
+
+sondages_smoothed = pl.DataFrame(
+    {
+        f"vote2022": CANDIDATES,
+        "pvote": [
+            0.5555522914642451,
+            0.999999999999226,
+            2.6915058730916215,
+            17.16201220054569,
+            2.0511403432017308,
+            4.906673937286057,
+            26.22890349406319,
+            8.371935740613074,
+            2.709478368598444,
+            2.3018239511475214,
+            23.1476141442254,
+            8.886892008663699,
+        ],
+        "source": ["sondages"] * len(CANDIDATES),
+    }
+)
 
 
 def build_bar_colors():

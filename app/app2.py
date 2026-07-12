@@ -2,7 +2,7 @@ import streamlit as st
 import polars as pl
 
 from config import (
-    CANDIDATES,
+    CANDIDATES, sondages_smoothed
 )
 
 from data import (
@@ -173,12 +173,7 @@ mode = st.sidebar.radio(
 comparison = prepare_comparison_df(
     resume,
     official,
-    official.rename(
-        {
-            "source":
-            "old"
-        }
-    ),
+    sondages_smoothed,
     year,
 )
 
@@ -259,28 +254,42 @@ with st.expander(
     "📊 Analyse socio-démographique"
 ):
 
+    rows = [
+        st.columns(2),
+        st.columns(2),
+    ]
 
-    for col in [
+    variables = [
         "AGE",
         "SEX",
         "PCS",
         "bassin_de_vie",
-    ]:
+    ]
 
-        st.subheader(col)
+    for i, col_name in enumerate(variables):
+        row = i // 2
+        col = i % 2
 
-        st.bar_chart(
-            detail
-            .group_by(col)
-            .len()
-            .sort(
-                "len",
-                descending=True,
+        with rows[row][col]:
+
+            st.subheader(col_name)
+
+            chart_df = (
+                detail
+                .group_by(col_name)
+                .len()
+                .sort(
+                    "len",
+                    descending=True,
+                )
+                .to_pandas()
+                .set_index(col_name)
             )
-            .to_pandas()
-            .set_index(col)
-        )
 
+            st.bar_chart(
+                chart_df,
+                height=350,
+            )
 
 
 # ==========================
@@ -293,33 +302,161 @@ with st.expander(
 ):
 
 
-    candidate = st.selectbox(
-        "Candidat",
-        CANDIDATES,
+    candidat = st.selectbox(
+        "Candidat choisi",
+        sorted(
+            detail[f"vote{year}"]
+            .unique()
+            .to_list()
+        ),
+        key="candidate_reason",
     )
 
 
-    reasons = (
-        detail
-        .filter(
-            pl.col(
-                f"vote{year}"
+    candidat_df = detail.filter(
+        pl.col(f"vote{year}") == candidat
+    )
+
+    rows = [
+        st.columns(2),
+        st.columns(2),
+    ]
+
+    variables = [
+        "AGE",
+        "SEX",
+        "PCS",
+        "bassin_de_vie",
+    ]
+
+    for i, col_name in enumerate(variables):
+        row = i // 2
+        col = i % 2
+
+        with rows[row][col]:
+
+            st.subheader(col_name)
+
+            chart_df = (
+                candidat_df
+                .group_by(col_name)
+                .len()
+                .sort(
+                    "len",
+                    descending=True,
+                )
+                .to_pandas()
+                .set_index(col_name)
             )
-            ==
-            candidate
+
+            st.bar_chart(
+                chart_df,
+                height=350,
+            )
+
+
+    c1, c2, c3, c4 = st.columns(4)
+
+
+    with c1:
+        age = st.selectbox(
+            "Âge",
+            sorted(
+                candidat_df["AGE"]
+                .unique()
+                .to_list()
+            ),
+            index=None,
+            key="filter_age",
         )
-    )
+
+
+    with c2:
+        pcs = st.selectbox(
+            "Catégorie socio-professionnelle",
+            sorted(
+                candidat_df["PCS"]
+                .unique()
+                .to_list()
+            ),
+            index=None,
+            key="filter_pcs",
+        )
+
+
+    with c3:
+        sexe = st.selectbox(
+            "Sexe",
+            sorted(
+                candidat_df["SEX"]
+                .unique()
+                .to_list()
+            ),
+            index=None,
+            key="filter_sex",
+        )
+
+
+    with c4:
+        geo = st.selectbox(
+            "Bassin de vie",
+            sorted(
+                candidat_df["bassin_de_vie"]
+                .unique()
+                .to_list()
+            ),
+            index=None,
+            key="filter_geo",
+        )
+
+
+    resultats = candidat_df
+
+
+    if age is not None:
+        resultats = resultats.filter(
+            pl.col("AGE") == age
+        )
+
+
+    if pcs is not None:
+        resultats = resultats.filter(
+            pl.col("PCS") == pcs
+        )
+
+
+    if sexe is not None:
+        resultats = resultats.filter(
+            pl.col("SEX") == sexe
+        )
+
+
+    if geo is not None:
+        resultats = resultats.filter(
+            pl.col("bassin_de_vie") == geo
+        )
 
 
     st.write(
-        f"{reasons.height} réponses"
+        f"**{resultats.height} répondants correspondants**"
     )
 
 
-    for row in reasons.iter_rows(
+    st.subheader(
+        "Raisons exprimées"
+    )
+
+
+    for row in resultats.iter_rows(
         named=True
     ):
 
-        st.info(
-            row["raison"]
+        texte = (
+            f"{row['raison']} "
+            f"— ({row['SEX']}, "
+            f"{row['AGE']}, "
+            f"{row['PCS']}, "
+            f"{row['bassin_de_vie']})"
         )
+
+        st.info(texte)
