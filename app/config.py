@@ -83,6 +83,8 @@ CANDIDATE_COLORS = {
     "Nicolas Dupont-Aignan (Debout la France)": "#1E88E5",
     "Marine Le Pen (Rassemblement national)": "#0B3D91",
     "Éric Zemmour (Reconquête)": "#5C0011",
+    "Abstention": "#F00000",
+    "Vote blanc ou nul": "#F00000",
 }
 
 

@@ -1,4 +1,5 @@
 import json
+import os
 import hashlib
 
 from diskcache import Cache
@@ -14,14 +15,13 @@ cache = Cache("./llm_cache")
 _openai_client = None
 
 
-def _is_openai(model):
-    return model.startswith(("gpt", "o1", "o3", "o4", "chatgpt"))
-
-
 def _openai_chat(model, messages, schema, name):
     global _openai_client
     if _openai_client is None:
-        _openai_client = OpenAI()
+        _openai_client = OpenAI(
+            api_key=os.environ["OPENAI_API_KEY"],
+            base_url="https://llm.lab.sspcloud.fr/api/v1/"
+        )
 
     response = _openai_client.chat.completions.create(
         model=model,
@@ -52,12 +52,12 @@ def _ollama_chat(model, messages, schema, name):
     return json.loads(response["message"]["content"])
 
 
-def _chat(model, messages, schema, name):
-    provider = _openai_chat if _is_openai(model) else _ollama_chat
+def _chat(model, client, messages, schema, name):
+    provider = _openai_chat if client == 'openai' else _ollama_chat
     return provider(model, messages, schema, name)
 
 
-def converse(person, template, year, model, questionnaire=None):
+def converse(person, template, year, model, client, questionnaire=None):
     """Run a questionnaire as a sequential conversation and return the record.
 
     The flow is entirely driven by ``questionnaire`` -- a callable ``(year) ->
@@ -85,7 +85,7 @@ def converse(person, template, year, model, questionnaire=None):
         logger.debug(f"Q[{step.key}]: {step.question}")
         messages.append({"role": "user", "content": step.question})
 
-        answer = _chat(model, messages, step.schema, step.key)
+        answer = _chat(model, client, messages, step.schema, step.key)
         messages.append({"role": "assistant", "content": json.dumps(answer)})
 
         value = step.transform(answer[step.key])
@@ -113,7 +113,7 @@ def _make_key(model, year, person):
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def ask(person, template, year, model, questionnaire=None):
+def ask(person, template, year, model, client, questionnaire=None):
     # Cache the whole conversation per persona (deterministic key, so it
     # hits despite the randomised candidate order inside a turn).
     key = _make_key(model, year, person)
@@ -123,7 +123,7 @@ def ask(person, template, year, model, questionnaire=None):
         logger.debug(f"cache hit for {person}")
         return {**person, **cached}
 
-    result = converse(person, template, year, model, questionnaire)
+    result = converse(person, template, year, model, client, questionnaire)
 
     # Store only the answer fields (persona is re-merged on read).
     answer = {k: v for k, v in result.items() if k not in person}

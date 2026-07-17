@@ -145,7 +145,7 @@ def bias_scatter(
                 "<b>%{customdata[1]}</b><br>"
                 "Version : %{customdata[0]}<br>"
                 "Répondants : %{customdata[2]}<br>"
-                "Biais en faveur de la droite (%) : %{x:.1f} pts<br>"
+                "Biais en faveur de la gauche (%) : %{x:.1f} pts<br>"
                 "Erreur moyenne (tous les candidats): %{y:.1f} pts"
                 "<extra></extra>"
             ),
@@ -165,7 +165,7 @@ def bias_scatter(
 
     fig.update_layout(
         height=650,
-        xaxis_title="Biais en faveur de la droite (%)",
+        xaxis_title="Biais en faveur de la gauche (%)",
         yaxis_title="Erreur moyenne (tous les candidats)",
         xaxis=dict(range=[-span, span], zeroline=False),
         yaxis=dict(range=[0, span], zeroline=False),

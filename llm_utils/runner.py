@@ -5,12 +5,12 @@ from concurrent.futures import (
 from llm_utils.ollama_client import ask
 
 
-def run(persons, template, year, model, workers):
+def run(persons, template, year, model, client, workers):
     results = []
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
-            executor.submit(ask, p, template, year, model)
+            executor.submit(ask, p, template, year, model, client)
             for p in persons.iter_rows(named=True)
         ]
 

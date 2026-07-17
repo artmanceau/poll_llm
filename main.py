@@ -111,6 +111,7 @@ async def main():
         template,
         config['year'],
         config['model'],
+        config['client'],
         config['workers']
     )
 
