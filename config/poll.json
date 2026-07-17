@@ -1,0 +1,8 @@
+{
+    "version": "1",
+    "model": "qwen3:8b",
+    "n_respondants":1,
+    "workers": 1,
+    "year": 2022,
+    "prompt_file":"prompts/poll_question.jinja2"
+}

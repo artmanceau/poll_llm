@@ -8,8 +8,6 @@ from config import (
     CANDIDATES,
 )
 
-from dates import parse_poll_dates
-
 
 storage_options = {
     "profile": "default",
@@ -109,10 +107,9 @@ def load_llm_data(
 
 
 @st.cache_data
-def load_poll_data(
+def load_official_results(
     year,
 ):
-
     columns = [
         "Sondeur",
         "Dates",
@@ -147,7 +144,6 @@ def load_poll_data(
         "Zemmour (REC)": "Éric Zemmour (Reconquête)",
     }
 
-
     polls = (
         pl.read_parquet(
             f"s3://arthurmanceau/election_modeling_uhcp/data/polls/presidentiel/{year}/polls_t1.parquet",
@@ -155,18 +151,13 @@ def load_poll_data(
         )
         .select(columns)
         .rename(rename)
-    )
-
-
-    official = (
-        polls
         .filter(
             pl.col("Sondeur")
             ==
             "Résultats"
-        )
-        .select(CANDIDATES)
-        .transpose(
+        ).select(
+            list(rename.values())
+        ).transpose(
             include_header=True
         )
         .rename(
@@ -186,27 +177,4 @@ def load_poll_data(
         )
     )
 
-
-    polls = (
-        polls
-        .filter(
-            pl.col("Sondeur")
-            !=
-            "Résultats"
-        )
-        .with_columns(
-            pl.col(
-                "Échantillon"
-            )
-            .cast(pl.Int64)
-        )
-    )
-
-
-    polls = parse_poll_dates(
-        polls,
-        year,
-    )
-
-
-    return official, polls
+    return polls

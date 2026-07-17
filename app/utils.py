@@ -15,7 +15,6 @@ def add_source(
 def prepare_comparison_df(
     resume,
     official,
-    smooth,
     year,
 ):
     return pl.concat(
@@ -31,18 +30,6 @@ def prepare_comparison_df(
                 add_source,
                 "LLM poll",
             ),
-
-            official,
-
-            smooth.select(
-                [
-                    f"vote{year}",
-                    "pvote",
-                ]
-            )
-            .pipe(
-                add_source,
-                "Sondages tendance",
-            )
+            official
         ]
     )

@@ -1,0 +1,28 @@
+{
+  "extra_vote_options": ["Abstention", "Blanc/Nul"],
+  "steps": [
+    {
+      "key": "inscription",
+      "question": "Es-tu inscrit·e sur les listes électorales ? Réponds uniquement 'Oui' ou 'Non'.",
+      "schema": {"type": "enum", "values": ["Oui", "Non"]},
+      "transform": {"Oui": "Oui", "Non": "Non"},
+      "stop_when": "Non",
+      "on_stop": {"confidence": null, "vote{year}": "Non inscrit", "reason": null}
+    },
+    {
+      "key": "confidence",
+      "question": "Sur une échelle de 1 à 5, quelle est ta confiance dans le fait que tu iras effectivement voter ? (1 = très faible, 5 = certaine).",
+      "schema": {"type": "enum", "values": [1, 2, 3, 4, 5]}
+    },
+    {
+      "key": "vote{year}",
+      "question": "Si le 1er tour de l’élection présidentielle avait lieu dimanche prochain, pour lequel des candidats suivants voteriez-vous ? \n{options}",
+      "schema": {"type": "candidates"}
+    },
+    {
+      "key": "reason",
+      "question": "En une phrase, pourquoi ce choix ?",
+      "schema": {"type": "string"}
+    }
+  ]
+}

@@ -5,9 +5,18 @@ from quotas.definitions import GENDER, AGE, CSP, DEPARTEMENT
 # Source
 # https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_RP_TD_POPULATION_PCSAGESEX_COMP 
 
+
 def get_quotas(N=100):
     codes = pl.scan_csv(
         "s3://arthurmanceau/poll_llm/quota/geo_codes.csv",
+        storage_options={
+            "aws_endpoint_url": "https://minio.lab.sspcloud.fr",
+            "aws_region": "us-east-1",
+        },
+        credential_provider=pl.CredentialProviderAWS(
+            profile_name="default",
+            region_name="us-east-1",
+        ),
         truncate_ragged_lines=True,
         separator=";",
     ).select(
@@ -28,6 +37,14 @@ def get_quotas(N=100):
 
     df = pl.scan_parquet(
         "s3://arthurmanceau/poll_llm/quota/quotas_data_insee.parquet",
+        storage_options={
+            "aws_endpoint_url": "https://minio.lab.sspcloud.fr",
+            "aws_region": "us-east-1",
+        },
+        credential_provider=pl.CredentialProviderAWS(
+            profile_name="default",
+            region_name="us-east-1",
+        ),
     ).select(
         'GEO', 'GEO_OBJECT', 'AGE', 'SEX', 'PCS', 'OBS_VALUE',
     ).filter(
