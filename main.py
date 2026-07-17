@@ -28,7 +28,11 @@ PROMPT_PATH = "s3://arthurmanceau/poll_llm/llm_prompts/"
 
 def save_prompt_artifacts(template, version):
     """Persist the prompt template and questionnaire config to S3 for audit."""
-    fs = s3fs.S3FileSystem()
+    fs = s3fs.S3FileSystem(
+        profile="default",
+        endpoint_url="https://minio.lab.sspcloud.fr",
+        client_kwargs={"region_name": "us-east-1"},
+    )
 
     artifacts = {
         "prompt_template.jinja2": template.render(),

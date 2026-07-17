@@ -5,7 +5,6 @@ import streamlit as st
 
 from config import (
     BUCKET_ROOT,
-    CANDIDATES,
 )
 
 
@@ -107,6 +106,58 @@ def load_llm_data(
 
 
 @st.cache_data
+def load_all_summaries(
+    year,
+):
+    """Load every version/model/respondents summary available for a year.
+
+    Returns one row per (candidate, model combo) with identifying columns,
+    so the bias tab can compare all LLM runs at once.
+    """
+
+    r = list_results().filter(
+        pl.col("YEAR") == year
+    )
+
+    frames = []
+
+    for row in r.iter_rows(named=True):
+
+        summary_path, _ = build_paths(
+            row["VERSION"],
+            row["MODEL"],
+            year,
+            row["N_RESPONDENTS"],
+        )
+
+        try:
+            s = pl.read_csv(
+                summary_path,
+                storage_options=storage_options,
+            )
+        except Exception:
+            continue
+
+        frames.append(
+            s.select(
+                [
+                    f"vote{year}",
+                    "pvote",
+                ]
+            ).with_columns(
+                pl.lit(row["VERSION"]).alias("version"),
+                pl.lit(row["MODEL"]).alias("model"),
+                pl.lit(row["N_RESPONDENTS"]).alias("respondents"),
+            )
+        )
+
+    if not frames:
+        return pl.DataFrame()
+
+    return pl.concat(frames)
+
+
+@st.cache_data
 def load_official_results(
     year,
 ):
@@ -129,7 +180,7 @@ def load_official_results(
     ]
 
 
-    rename = {
+    rename_dict = {
         "Arthaud (LO)": "Nathalie Arthaud (Lutte ouvrière)",
         "Poutou (NPA)": "Philippe Poutou (Nouveau Parti anticapitaliste)",
         "Roussel (PCF)": "Fabien Roussel (Parti communiste français)",
@@ -150,13 +201,13 @@ def load_official_results(
             storage_options=storage_options,
         )
         .select(columns)
-        .rename(rename)
+        .rename(rename_dict)
         .filter(
             pl.col("Sondeur")
             ==
             "Résultats"
         ).select(
-            list(rename.values())
+            list(rename_dict.values())
         ).transpose(
             include_header=True
         )

@@ -94,6 +94,86 @@ def global_bar_plot(
     return fig
 
 
+def bias_scatter(
+    df: pl.DataFrame,
+):
+    """Scatter of each LLM run: x = Total Gauche bias, y = Total Droite bias,
+    marker color = mean absolute error across candidates."""
+
+    pdf = df.to_pandas()
+
+    text = [
+        f"{m} (n={r}), version {v}"
+        for m, r, v in zip(pdf["model"], pdf["respondents"], pdf['version'])
+    ]
+
+    customdata = pdf[
+        ["version", "model", "respondents", "avg_error"]
+    ].to_numpy()
+
+    span = max(
+        1.0,
+        float(
+            pdf[["tg_bias", "avg_error"]]
+            .abs()
+            .to_numpy()
+            .max()
+        ),
+    ) * 1.15
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=pdf["tg_bias"],
+            y=pdf["avg_error"],
+            mode="markers+text",
+            text=text,
+            textposition="top center",
+            marker=dict(
+                size=16,
+                color=pdf["respondents"],
+                colorscale="Reds",
+                showscale=True,
+                colorbar=dict(
+                    title="Respondents"
+                ),
+                line=dict(width=1, color="#333333"),
+            ),
+            customdata=customdata,
+            hovertemplate=(
+                "<b>%{customdata[1]}</b><br>"
+                "Version : %{customdata[0]}<br>"
+                "Répondants : %{customdata[2]}<br>"
+                "Biais en faveur de la droite (%) : %{x:.1f} pts<br>"
+                "Erreur moyenne (tous les candidats): %{y:.1f} pts"
+                "<extra></extra>"
+            ),
+        )
+    )
+
+    fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="grey",
+    )
+    fig.add_vline(
+        x=0,
+        line_dash="dash",
+        line_color="grey",
+    )
+
+    fig.update_layout(
+        height=650,
+        xaxis_title="Biais en faveur de la droite (%)",
+        yaxis_title="Erreur moyenne (tous les candidats)",
+        xaxis=dict(range=[-span, span], zeroline=False),
+        yaxis=dict(range=[0, span], zeroline=False),
+    )
+
+    return fig
+
+
 def bloc_bar_plot(
     df: pl.DataFrame,
 ):

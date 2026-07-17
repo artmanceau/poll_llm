@@ -53,6 +53,23 @@ CANDIDATE_TO_BLOC = {
 }
 
 
+# Total Gauche (TG) / Total Droite (TD): which blocs sum into each side.
+# A bloc absent from every list (here the Centre "C") is excluded from both
+# totals. To fold the centre into a side, add "C" to the relevant list.
+BLOC_SIDES = {
+    "TG": ["G", "CG"],
+    "TD": ["CD", "D"],
+}
+
+
+CANDIDATE_TO_SIDE = {
+    candidate: side
+    for side, blocs in BLOC_SIDES.items()
+    for bloc in blocs
+    for candidate in BLOCS[bloc]
+}
+
+
 CANDIDATE_COLORS = {
     "Nathalie Arthaud (Lutte ouvrière)": "#B22222",
     "Philippe Poutou (Nouveau Parti anticapitaliste)": "#E53935",

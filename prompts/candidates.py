@@ -11,6 +11,8 @@ candidates_2027 = [
     "Nicolas Dupont-Aignan (Debout la France)",
     "Marine Le Pen (Rassemblement national)",
     "Éric Zemmour (Reconquête)",
+    "Abstention",
+    "Vote blanc ou nul"
 ]
 
 # Candidats à l'élection présidentielle de 2022
@@ -27,6 +29,8 @@ candidates_2022 = [
     "Valérie Pécresse (Les Républicains)",
     "Philippe Poutou (Nouveau Parti anticapitaliste)",
     "Nicolas Dupont-Aignan (Debout la France)",
+    "Abstention",
+    "Vote blanc ou nul"
 ]
 
 CANDIDATES = {

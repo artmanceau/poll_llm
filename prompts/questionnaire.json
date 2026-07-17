@@ -1,26 +1,26 @@
 {
-  "extra_vote_options": ["Abstention", "Blanc/Nul"],
+  "extra_vote_options": [],
   "steps": [
     {
       "key": "inscription",
-      "question": "Es-tu inscrit·e sur les listes électorales ? Réponds uniquement 'Oui' ou 'Non'.",
+      "question": "Êtes-vous inscrit(e) sur les listes électorales pour pouvoir voter ?",
       "schema": {"type": "enum", "values": ["Oui", "Non"]},
       "transform": {"Oui": "Oui", "Non": "Non"},
-      "stop_when": "Non",
+      "stop_when": "No",
       "on_stop": {"confidence": null, "vote{year}": "Non inscrit", "reason": null}
     },
     {
       "key": "confidence",
-      "question": "Sur une échelle de 1 à 5, quelle est ta confiance dans le fait que tu iras effectivement voter ? (1 = très faible, 5 = certaine).",
-      "schema": {"type": "enum", "values": [1, 2, 3, 4, 5]}
+      "question": "La prochaine élection présidentielle aura lieu en {year}. Sur une échelle allant de « 0 » à « 10 », quelle est la probabilité que vous alliez voter à l’élection présidentielle qui aura lieu en 2027 ? Sachant que : • 0 signifie que vous êtes tout à fait certain de ne pas aller voter. • 10 que vous êtes tout à fait certain d’aller voter. • Les notes intermédiaires vous permettent de nuancer votre intention",
+      "schema": {"type": "enum", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
     },
     {
       "key": "vote{year}",
-      "question": "Si le 1er tour de l’élection présidentielle avait lieu dimanche prochain, pour lequel des candidats suivants voteriez-vous ? \n{options}",
+      "question": "Si le 1er tour de l’élection présidentielle de {year} avait lieu dimanche prochain, pour lequel des candidats suivants voteriez-vous ? \n{options}",
       "schema": {"type": "candidates"}
     },
     {
-      "key": "reason",
+      "key": "raison",
       "question": "En une phrase, pourquoi ce choix ?",
       "schema": {"type": "string"}
     }
