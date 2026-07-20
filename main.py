@@ -123,7 +123,7 @@ async def main():
     detailed = pl.DataFrame(
         results
     )
-
+    
     summary = get_summary(
         detailed, config['year']
     )

@@ -19,13 +19,18 @@ def prepare_comparison_df(
     official,
     year,
 ):
+    resume_wo_abstention = resume.filter(~(pl.col(f'vote{year}').is_in(['Abstention', 'Non inscrit', 'Vote blanc ou nul'])))
+    n_vote = resume_wo_abstention.select('vote').sum().item()
+    resume_wo_abstention = resume_wo_abstention.with_columns(
+        pvote=(pl.col('vote') / n_vote) * 100
+    )
     return pl.concat(
         [
-            resume
+            resume_wo_abstention
             .select(
                 [
                     f"vote{year}",
-                    "pvote",
+                    'pvote'
                 ]
             )
             .pipe(
@@ -41,15 +46,12 @@ def compute_bias(
     all_summaries,
     official,
     year,
-    normalize=True,
 ):
     """Per model run, bias vs the official result on Total Gauche / Total
     Droite and the mean absolute error across candidates.
 
     bias = LLM share - official share (in points). Positive TG bias means the
-    model over-estimates the left. When ``normalize`` is set, LLM candidate
-    shares are rescaled to expressed votes (abstention/blank dropped) so both
-    sides are shares of the same base as the official result.
+    model over-estimates the left.
     """
 
     vote_col = f"vote{year}"
@@ -75,12 +77,11 @@ def compute_bias(
             pl.col(vote_col).is_in(official_candidates)
         )
 
-        if normalize:
-            total = cand["pvote"].sum()
-            if total and total > 0:
-                cand = cand.with_columns(
-                    (pl.col("pvote") / total * 100).alias("pvote")
-                )
+        total = cand["pvote"].sum()
+        if total and total > 0:
+            cand = cand.with_columns(
+                (pl.col("pvote") / total * 100).alias("pvote")
+            )
 
         merged = (
             cand

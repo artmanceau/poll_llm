@@ -453,13 +453,6 @@ with tab_bias:
         )
 
     else:
-
-        normalize = st.checkbox(
-            "Ramener aux suffrages exprimés "
-            "(exclure abstention / vote blanc)",
-            value=True,
-        )
-
         with st.spinner(
             "Chargement de toutes les simulations…"
         ):
@@ -478,7 +471,6 @@ with tab_bias:
                 all_summaries,
                 official,
                 year,
-                normalize=normalize,
             )
 
             st.plotly_chart(

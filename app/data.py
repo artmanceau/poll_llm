@@ -7,6 +7,36 @@ from config import (
     BUCKET_ROOT,
 )
 
+candidates = [
+        "arthaud",
+        "poutou",
+        "roussel",
+        "melenchon",
+        "hidalgo",
+        "jadot",
+        "macron",
+        "pecresse",
+        "lassalle",
+        "dupont_aignan",
+        "m_le_pen",
+        "zemmour",
+]
+columns = [f'C_{candidate}_processed' for candidate in candidates] + ["source", "date", "sample_size"]
+
+rename_dict = {
+        "C_arthaud_processed": "Nathalie Arthaud (Lutte ouvrière)",
+        "C_poutou_processed": "Philippe Poutou (Nouveau Parti anticapitaliste)",
+        "C_roussel_processed": "Fabien Roussel (Parti communiste français)",
+        "C_melenchon_processed": "Jean-Luc Mélenchon (La France insoumise)",
+        "C_hidalgo_processed": "Anne Hidalgo (Parti Socialiste)",
+        "C_jadot_processed": "Yannick Jadot (Europe Écologie Les Verts)",
+        "C_macron_processed": "Emmanuel Macron (La République en marche)",
+        "C_pecresse_processed": "Valérie Pécresse (Les Républicains)",
+        "C_lassalle_processed": "Jean Lassalle (Résistons)",
+        "C_dupont_aignan_processed": "Nicolas Dupont-Aignan (Debout la France)",
+        "C_m_le_pen_processed": "Marine Le Pen (Rassemblement national)",
+        "C_zemmour_processed": "Éric Zemmour (Reconquête)",
+}
 
 storage_options = {
     "profile": "default",
@@ -161,49 +191,16 @@ def load_all_summaries(
 def load_official_results(
     year,
 ):
-    columns = [
-        "Sondeur",
-        "Dates",
-        "Échantillon",
-        "Arthaud (LO)",
-        "Poutou (NPA)",
-        "Roussel (PCF)",
-        "Mélenchon (LFI)",
-        "Hidalgo (PS)",
-        "Jadot (EÉLV)",
-        "Macron (LREM)",
-        "Pécresse (LR)",
-        "Lassalle (RES)",
-        "Dupont-Aignan (DLF)",
-        "Le Pen (RN)",
-        "Zemmour (REC)",
-    ]
-
-
-    rename_dict = {
-        "Arthaud (LO)": "Nathalie Arthaud (Lutte ouvrière)",
-        "Poutou (NPA)": "Philippe Poutou (Nouveau Parti anticapitaliste)",
-        "Roussel (PCF)": "Fabien Roussel (Parti communiste français)",
-        "Mélenchon (LFI)": "Jean-Luc Mélenchon (La France insoumise)",
-        "Hidalgo (PS)": "Anne Hidalgo (Parti Socialiste)",
-        "Jadot (EÉLV)": "Yannick Jadot (Europe Écologie Les Verts)",
-        "Macron (LREM)": "Emmanuel Macron (La République en marche)",
-        "Pécresse (LR)": "Valérie Pécresse (Les Républicains)",
-        "Lassalle (RES)": "Jean Lassalle (Résistons)",
-        "Dupont-Aignan (DLF)": "Nicolas Dupont-Aignan (Debout la France)",
-        "Le Pen (RN)": "Marine Le Pen (Rassemblement national)",
-        "Zemmour (REC)": "Éric Zemmour (Reconquête)",
-    }
-
+    
     polls = (
         pl.read_parquet(
-            f"s3://arthurmanceau/election_modeling_uhcp/data/polls/presidentiel/{year}/polls_t1.parquet",
+            f"s3://arthurmanceau/poll_tracker/wiki/presidentiel/{year}/t1/polls.parquet",
             storage_options=storage_options,
         )
         .select(columns)
         .rename(rename_dict)
         .filter(
-            pl.col("Sondeur")
+            pl.col("source")
             ==
             "Résultats"
         ).select(

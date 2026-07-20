@@ -1,12 +1,27 @@
 {
   "extra_vote_options": [],
   "steps": [
+     {
+      "key": "interet",
+      "question": "Sur une échelle de 0 à 10, où 0 signifie aucun intérêt et 10 signifie énormément d’intérêt, quel est votre niveau d’intérêt pour la prochaine élection présidentielle de {year} ?",
+      "schema": {"type": "enum", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+    },
+    {
+      "key": "candidat_gagne",
+      "question": "Idenpendament de votre vote ou orientation politique, quel candidat va remporter l'election présidentielle selon vous? \n{options}",
+      "schema":{"type": "candidates"}
+    },
+    {
+      "key": "satisfaction_incombant",
+      "question": "D’une manière générale, sur une échelle de 0 à 10, où 0 signifie pas du tout satisfait et 10 signifie complétement satisfait, êtes-vous satisfait(e) ou non de l’action du président de la République Emmanuel Macron ?",
+      "schema": {"type": "enum", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+    },
     {
       "key": "inscription",
       "question": "Êtes-vous inscrit(e) sur les listes électorales pour pouvoir voter ?",
       "schema": {"type": "enum", "values": ["Oui", "Non"]},
       "transform": {"Oui": "Oui", "Non": "Non"},
-      "stop_when": "No",
+      "stop_when": "Non",
       "on_stop": {"confidence": null, "vote{year}": "Non inscrit", "reason": null}
     },
     {
@@ -23,6 +38,16 @@
       "key": "raison",
       "question": "En une phrase, pourquoi ce choix ?",
       "schema": {"type": "string"}
+    },
+    {
+      "key": "report_vote{year}",
+      "question": "Si finalement vous ne deviez pas voter pour le candidat que vous avez indiqué, quel serait votre choix au premier tour ? \n{options}",
+      "schema": {"type": "candidates"}
+    },
+    {
+      "key": "secondtour_hyp1_{year}",
+      "question": " Passons maintenant au second tour. Si le 2nd tour de l’élection présidentielle avait lieu dimanche prochain, quel est le candidat pour lequel il y aurait le plus de chances que vous votiez au second tour ? Si vous aviez le choix entre les candidats suivants au 2nd tour ? \n{options}",
+      "schema": {"type": "enum", "values": ["Emmanuel Macron (La République en marche)", "Marine Le Pen (Rassemblement national)"]}
     }
   ]
 }

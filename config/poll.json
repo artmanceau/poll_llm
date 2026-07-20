@@ -1,5 +1,5 @@
 {
-    "version": "1",
+    "version": "2",
     "client": "openai",
     "model": "gemma4-26b-moe",
     "n_respondants":1000,

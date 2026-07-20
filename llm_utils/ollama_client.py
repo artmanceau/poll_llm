@@ -9,6 +9,7 @@ from llm_utils.utils import render
 from prompts.prompts import build_questionnaire
 from openai import OpenAI
 import ollama
+import mlflow
 
 cache = Cache("./llm_cache")
 
@@ -69,20 +70,17 @@ def converse(person, template, year, model, client, questionnaire=None):
     """
     steps = (questionnaire or build_questionnaire)(year)
 
-    logger.debug(f"Starting conversation for {person}")
-
     result = {**person}
 
     # The rendered template carries the persona + election context.
     messages = [
-        {
-            "role": "system",
-            "content": render(template, person, year),
-        }
+            {
+                "role": "system",
+                "content": render(template, person, year),
+            }
     ]
 
     for step in steps:
-        logger.debug(f"Q[{step.key}]: {step.question}")
         messages.append({"role": "user", "content": step.question})
 
         answer = _chat(model, client, messages, step.schema, step.key)
@@ -90,16 +88,10 @@ def converse(person, template, year, model, client, questionnaire=None):
 
         value = step.transform(answer[step.key])
         result[step.key] = value
-        logger.debug(f"A[{step.key}]: {value}")
 
         if step.stop and step.stop(value):
-            logger.info(
-                f"{person} stopped at '{step.key}' -- ending conversation"
-            )
             result.update(step.on_stop)
             return result
-
-    logger.debug(f"Completed conversation for {person}: {result}")
 
     return result
 
@@ -113,20 +105,17 @@ def _make_key(model, year, person):
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def ask(person, template, year, model, client, questionnaire=None):
+def ask_with_mlflow(person, template, year, model, client, user_id=None, session_id=None, questionnaire=None):
     # Cache the whole conversation per persona (deterministic key, so it
     # hits despite the randomised candidate order inside a turn).
-    key = _make_key(model, year, person)
+    with mlflow.tracing.context(session_id=session_id, user=user_id):
+        return ask(person, template, year, model, client, user_id=user_id, session_id=session_id, questionnaire=None)
 
-    cached = cache.get(key)
-    if cached:
-        logger.debug(f"cache hit for {person}")
-        return {**person, **cached}
 
+def ask(person, template, year, model, client, user_id=None, session_id=None, questionnaire=None):
+    if session_id:
+        i = session_id.split('_')[-1]
+        if int(i) % 5 == 0:
+            logger.debug(f'Processing at {session_id}')
     result = converse(person, template, year, model, client, questionnaire)
-
-    # Store only the answer fields (persona is re-merged on read).
-    answer = {k: v for k, v in result.items() if k not in person}
-    cache.set(key, answer, expire=60 * 60 * 24 * 30)
-
     return result
