@@ -6,7 +6,7 @@ from typing import Callable, Optional
 
 from jinja2 import Template
 
-from prompts.candidates import CANDIDATES
+from prompts.candidates import CANDIDATES, CANDIDATES_T2
 
 QUESTIONNAIRE_PATH = Path(__file__).with_name("questionnaire.json")
 
@@ -68,7 +68,7 @@ class Step:
     on_stop: dict = field(default_factory=dict)
 
 
-def _build_schema(schema_spec, key, year, extra_vote_options):
+def _build_schema(schema_spec, key, year, previous_year, extra_vote_options):
     """Turn a JSON schema spec into a concrete JSON schema + option list.
 
     Returns ``(schema, options)`` where ``options`` is the resolved candidate
@@ -80,6 +80,23 @@ def _build_schema(schema_spec, key, year, extra_vote_options):
         candidates = random.sample(
             CANDIDATES[year],
             len(CANDIDATES[year]),
+        )
+        options = candidates + extra_vote_options
+        return _enum_schema(key, options), options
+
+    if kind == "candidates_n_1":
+        candidates = random.sample(
+            CANDIDATES[previous_year],
+            len(CANDIDATES[previous_year]),
+        )
+        options = candidates + extra_vote_options
+        return _enum_schema(key, options), options
+
+    if "t2hyp" in kind:
+        candidate_list = CANDIDATES_T2[year][kind]
+        candidates = random.sample(
+            candidate_list,
+            len(candidate_list),
         )
         options = candidates + extra_vote_options
         return _enum_schema(key, options), options
@@ -113,16 +130,16 @@ def build_questionnaire(year, path=QUESTIONNAIRE_PATH):
 
     steps = []
     for raw in config["steps"]:
-        key = raw["key"].format(year=year)
+        key = raw["key"].format(year=year, previous_year=year-5)
 
         schema, options = _build_schema(
-            raw["schema"], key, year, extra_vote_options
+            raw["schema"], key, year, year-5, extra_vote_options
         )
 
         options_text = (
             "\n".join(f"- {c}" for c in options) if options else ""
         )
-        question = raw["question"].format(year=year, options=options_text)
+        question = raw["question"].format(year=year, previous_year=year-5, options=options_text)
 
         stop = None
         if "stop_when" in raw:
@@ -130,7 +147,7 @@ def build_questionnaire(year, path=QUESTIONNAIRE_PATH):
             stop = lambda v, target=raw["stop_when"]: v == target
 
         on_stop = {
-            k.format(year=year): value
+            k.format(year=year, previous_year=year-5): value
             for k, value in raw.get("on_stop", {}).items()
         }
 

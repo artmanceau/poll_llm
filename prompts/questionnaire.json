@@ -8,7 +8,7 @@
     },
     {
       "key": "candidat_gagne",
-      "question": "Idenpendament de votre vote ou orientation politique, quel candidat va remporter l'election présidentielle selon vous? \n{options}",
+      "question": "Idenpendament de votre vote ou orientation politique, quel candidat va remporter l'election présidentielle de {year} selon vous? \n{options}",
       "schema":{"type": "candidates"}
     },
     {
@@ -25,8 +25,8 @@
       "on_stop": {"confidence": null, "vote{year}": "Non inscrit", "reason": null}
     },
     {
-      "key": "confidence",
-      "question": "La prochaine élection présidentielle aura lieu en {year}. Sur une échelle allant de « 0 » à « 10 », quelle est la probabilité que vous alliez voter à l’élection présidentielle qui aura lieu en 2027 ? Sachant que : • 0 signifie que vous êtes tout à fait certain de ne pas aller voter. • 10 que vous êtes tout à fait certain d’aller voter. • Les notes intermédiaires vous permettent de nuancer votre intention",
+      "key": "probabilite",
+      "question": "Sur une échelle allant de 0 à 10, quelle est la probabilité que vous alliez voter à la prochaine élection présidentielle qui aura lieu en {year} ? Sachant que 0 signifie que vous êtes tout à fait certain de ne pas aller voter et 10 que vous êtes tout à fait certain d’aller voter",
       "schema": {"type": "enum", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
     },
     {
@@ -41,13 +41,48 @@
     },
     {
       "key": "report_vote{year}",
-      "question": "Si finalement vous ne deviez pas voter pour le candidat que vous avez indiqué, quel serait votre choix au premier tour ? \n{options}",
+      "question": "Si finalement vous ne pouviez pas voter pour le candidat que vous avez indiqué, quel serait votre choix au premier tour ? \n{options}",
       "schema": {"type": "candidates"}
     },
     {
+      "key": "raison_report",
+      "question": "Comment justifiez-vous ce choix de repport de voix ?",
+      "schema": {"type": "string"}
+    },
+    {
+    "key": "previous_vote{year}",
+      "question": "Pour qui aviez vous voté au premier tour de l'election présidentielle précédente, en {previous_year} ? \n{options}",
+      "schema": {"type": "candidates_n_1"}
+    },
+    {
       "key": "secondtour_hyp1_{year}",
+      "question": " Passons maintenant au second tour. Si le 2nd tour de l’élection présidentielle avait lieu dimanche prochain, quel est le candidat pour lequel il y aurait le plus de chances que vous votiez au second tour ? \n{options}",
+      "schema": {"type": "t2hyp1"}
+    },
+    {
+      "key": "raison_secondtour_hyp1",
+      "question": "En une phrase, pourquoi ce choix ?",
+      "schema": {"type": "string"}
+    },
+    {
+      "key": "secondtour_hyp2_{year}",
+      "question": " Passons maintenant au second tour. Si le 2nd tour de l’élection présidentielle avait lieu dimanche prochain, quel est le candidat pour lequel il y aurait le plus de chances que vous votiez au second tour ? \n{options}",
+      "schema": {"type": "t2hyp2"}
+    },
+     {
+      "key": "raison_secondtour_hyp2",
+      "question": "En une phrase, pourquoi ce choix ?",
+      "schema": {"type": "string"}
+    },
+    {
+      "key": "secondtour_hyp3_{year}",
       "question": " Passons maintenant au second tour. Si le 2nd tour de l’élection présidentielle avait lieu dimanche prochain, quel est le candidat pour lequel il y aurait le plus de chances que vous votiez au second tour ? Si vous aviez le choix entre les candidats suivants au 2nd tour ? \n{options}",
-      "schema": {"type": "enum", "values": ["Emmanuel Macron (La République en marche)", "Marine Le Pen (Rassemblement national)"]}
+      "schema": {"type": "t2hyp3"}
+    },
+    {
+      "key": "raison_secondtour_hyp3",
+      "question": "En une phrase, pourquoi ce choix ?",
+      "schema": {"type": "string"}
     }
   ]
 }
