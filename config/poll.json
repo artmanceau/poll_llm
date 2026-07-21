@@ -2,7 +2,7 @@
     "version": "3",
     "client": "openai",
     "model": "gemma4-26b-moe",
-    "n_respondants":500,
+    "n_respondants":1,
     "workers": 64,
     "year": 2022,
     "prompt_file":"prompts/poll_question.jinja2"

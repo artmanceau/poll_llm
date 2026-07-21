@@ -2,4 +2,3 @@ __pycache__/
 .env
 app/streamlit/secrets.toml
 llm_cache/
-notebooks/

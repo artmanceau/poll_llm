@@ -28,11 +28,11 @@ def get_quotas(N=100):
     ).rename({
         "field_0": "GEO_OBJECT",
         "field_1": "GEO",
-        'libelle français': 'bassin_de_vie'}
+        'libelle français': 'commune'}
     ).filter(
-        pl.col('GEO_OBJECT') == 'BV2022'
+        pl.col('GEO_OBJECT') == 'COM'
     ).select(
-        'GEO', 'bassin_de_vie'
+        'GEO', 'commune'
     )
 
     df = pl.scan_parquet(
@@ -48,7 +48,7 @@ def get_quotas(N=100):
     ).select(
         'GEO', 'GEO_OBJECT', 'AGE', 'SEX', 'PCS', 'OBS_VALUE',
     ).filter(
-        (pl.col('PCS') != '_T') & (pl.col('AGE') != 'Y_GE15') & (pl.col('SEX') != '_T') & (pl.col('GEO_OBJECT') == 'BV2022')
+        (pl.col('PCS') != '_T') & (pl.col('AGE') != 'Y_GE15') & (pl.col('SEX') != '_T') & (pl.col('GEO_OBJECT') == 'COM')
     ).with_columns(
         pl.col('GEO').cast(pl.String)
     ).join(
@@ -65,6 +65,6 @@ def get_quotas(N=100):
         pl.col('PCS').cast(pl.String).replace(CSP),
         pl.col('SEX').cast(pl.String).replace(GENDER),
     ).select(
-        'bassin_de_vie', 'AGE', 'SEX', 'PCS'
+        'commune', 'AGE', 'SEX', 'PCS'
     )
     return sample
