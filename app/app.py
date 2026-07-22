@@ -26,6 +26,8 @@ st.set_page_config(
     layout="wide",
 )
 
+MIN_VERSION = "4"
+MIN_N = 50
 
 # ==========================
 # CONFIGURATION
@@ -46,11 +48,10 @@ if results.is_empty():
 
     st.stop()
 
-
 version = st.sidebar.selectbox(
     "Version",
     sorted(
-        results["VERSION"]
+        results.filter(pl.col('VERSION') >= MIN_VERSION)["VERSION"]
         .unique()
         .to_list(),
         reverse=True,
@@ -103,7 +104,7 @@ r = r.filter(
 respondents = st.sidebar.selectbox(
     "Répondants",
     sorted(
-        r["N_RESPONDENTS"]
+        r.filter(pl.col('N_RESPONDENTS')>MIN_N)["N_RESPONDENTS"]
         .unique()
         .to_list()
     ),
@@ -117,8 +118,6 @@ summary_path, detail_path = build_paths(
     year,
     respondents,
 )
-
-
 
 resume, detail = load_llm_data(
     summary_path,
@@ -169,22 +168,62 @@ with tab_main:
         """
     )
 
+    # ==========================
+    # Participation
+    # ==========================
+
+    if 'probabilite' in detail.columns:
+        st.header(
+            "Taux de participation"
+        )
+
+        st.info("Le taux de participation est calculée comme la note moyenne sur une echelle de 0 à 100 que les répondants ont indiqué à propos de leur intention d\'aller voter")
+
+        true_ppar = {
+            2022: 0.8050,
+            2017: 0.8361
+        }
+        if year in true_ppar:
+            ppar = true_ppar[year]
+            st.metric(value=ppar, label='Taux de participation réel',  delta_color='green', format='percent')
+        else:
+            ppar = None
+
+        ppar_pred = detail.get_column('probabilite').mean()/10
+        st.metric(value=ppar_pred, label='Taux de participation prédit par le sondage', format='percent', delta_color='blue', delta=ppar_pred-ppar)
 
     # ==========================
     # BAR PLOT
     # ==========================
 
+    # Remove non-vote
+    resume_wo_abstention = resume.filter(~(pl.col(f'vote{year}').is_in(['Abstention', 'Non inscrit', 'Vote blanc ou nul'])))
+    n_vote = resume_wo_abstention.select('vote').sum().item()
+    resume_wo_abstention = resume_wo_abstention.with_columns(
+        pvote=(pl.col('vote') / n_vote) * 100
+    )
 
     comparison = prepare_comparison_df(
-        resume,
+        resume_wo_abstention,
         official,
         year,
     )
 
-
     st.header(
         "Intentions de vote"
     )
+
+    st.info('Les intentions de vote sont déterminées en demandant aux répondants le candidat pour lequel ils comptent voter au premier tour')
+
+    avg_error = resume_wo_abstention.join(
+        official, on=f'vote{year}'
+    ).rename(
+        {'pvote_right': 'off', 'pvote': 'pred'}
+    ).with_columns(
+        avg_error=(pl.col('off') - pl.col('pred')).abs() / 100
+    ).select('avg_error').mean().item()
+
+    st.metric(value=avg_error, label='Erreur absolue moyenne', format='percent')
 
 
     if mode == "Candidats":
@@ -230,7 +269,7 @@ with tab_main:
             "AGE",
             "SEX",
             "PCS",
-            "bassin_de_vie",
+            "dep",
         ]
 
         for i, col_name in enumerate(variables):
@@ -293,7 +332,7 @@ with tab_main:
             "AGE",
             "SEX",
             "PCS",
-            "bassin_de_vie",
+            "dep",
         ]
 
         for i, col_name in enumerate(variables):
@@ -366,9 +405,9 @@ with tab_main:
 
         with c4:
             geo = st.selectbox(
-                "Bassin de vie",
+                "dep",
                 sorted(
-                    candidat_df["bassin_de_vie"]
+                    candidat_df["dep"]
                     .unique()
                     .to_list()
                 ),
@@ -400,7 +439,7 @@ with tab_main:
 
         if geo is not None:
             resultats = resultats.filter(
-                pl.col("bassin_de_vie") == geo
+                pl.col("dep") == geo
             )
 
 
@@ -423,7 +462,8 @@ with tab_main:
                 f"— ({row['SEX']}, "
                 f"{row['AGE']}, "
                 f"{row['PCS']}, "
-                f"{row['bassin_de_vie']})"
+                f"{row['commune']} — "
+                f"{row['dep']})"
             )
 
             st.info(texte)
@@ -457,7 +497,7 @@ with tab_bias:
             "Chargement de toutes les simulations…"
         ):
 
-            all_summaries = load_all_summaries(year)
+            all_summaries = load_all_summaries(year, MIN_VERSION, MIN_N)
 
         if all_summaries.is_empty():
 

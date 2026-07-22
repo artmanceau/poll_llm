@@ -54,7 +54,6 @@ def _ollama_chat(model, messages, schema, name):
 
 
 def _chat(model, client, messages, schema, name):
-    # Try/except for client errors
     try:
         provider = _openai_chat if client == 'openai' else _ollama_chat
         res = provider(model, messages, schema, name)
@@ -62,7 +61,7 @@ def _chat(model, client, messages, schema, name):
     except Exception as e:
         logger.error(f'Erreur sending request: {e}')
         # Return an empty compliant schema
-        return {}
+        return {schema['required'][0] : None}
 
 
 def converse(person, template, year, model, client, questionnaire=None):

@@ -19,14 +19,9 @@ def prepare_comparison_df(
     official,
     year,
 ):
-    resume_wo_abstention = resume.filter(~(pl.col(f'vote{year}').is_in(['Abstention', 'Non inscrit', 'Vote blanc ou nul'])))
-    n_vote = resume_wo_abstention.select('vote').sum().item()
-    resume_wo_abstention = resume_wo_abstention.with_columns(
-        pvote=(pl.col('vote') / n_vote) * 100
-    )
     return pl.concat(
         [
-            resume_wo_abstention
+            resume
             .select(
                 [
                     f"vote{year}",

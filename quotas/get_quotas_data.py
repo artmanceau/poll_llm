@@ -28,11 +28,22 @@ def get_quotas(N=100):
     ).rename({
         "field_0": "GEO_OBJECT",
         "field_1": "GEO",
-        'libelle français': 'commune'}
+        'libelle français': 'name'}
+    )
+
+    codes_communes = codes.rename({
+        'name': 'commune'}
     ).filter(
         pl.col('GEO_OBJECT') == 'COM'
     ).select(
         'GEO', 'commune'
+    )
+    codes_dep = codes.rename({
+        'name': 'dep'}
+    ).filter(
+        pl.col('GEO_OBJECT') == 'DEP'
+    ).select(
+        'GEO', 'dep'
     )
 
     df = pl.scan_parquet(
@@ -52,7 +63,7 @@ def get_quotas(N=100):
     ).with_columns(
         pl.col('GEO').cast(pl.String)
     ).join(
-        codes, on='GEO'
+        codes_communes, on='GEO'
     ).collect()
 
     weights = df.get_column("OBS_VALUE").to_numpy()
@@ -64,7 +75,13 @@ def get_quotas(N=100):
         pl.col('AGE').cast(pl.String).replace(AGE),
         pl.col('PCS').cast(pl.String).replace(CSP),
         pl.col('SEX').cast(pl.String).replace(GENDER),
+    ).with_columns(
+        dep_=pl.when(pl.col('GEO').str.starts_with('97'))
+        .then(pl.col('GEO').str.slice(0, 3))
+        .otherwise(pl.col("GEO").str.slice(0, 2))
+    ).with_columns(
+        pl.col('dep_').cast(pl.String).replace(DEPARTEMENT).alias('dep')
     ).select(
-        'commune', 'AGE', 'SEX', 'PCS'
+        'commune', 'AGE', 'SEX', 'PCS', 'dep'
     )
     return sample

@@ -138,6 +138,8 @@ def load_llm_data(
 @st.cache_data
 def load_all_summaries(
     year,
+    min_version,
+    min_n
 ):
     """Load every version/model/respondents summary available for a year.
 
@@ -147,6 +149,10 @@ def load_all_summaries(
 
     r = list_results().filter(
         pl.col("YEAR") == year
+    ).filter(
+        pl.col('VERSION') >= min_version
+    ).filter(
+        pl.col('N_RESPONDENTS') >= min_n
     )
 
     frames = []
