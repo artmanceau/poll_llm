@@ -1,5 +1,5 @@
 import polars as pl
-
+import os
 from config import CANDIDATE_TO_SIDE
 
 
@@ -7,11 +7,7 @@ def add_source(
     df: pl.DataFrame,
     source: str,
 ):
-
-    return df.with_columns(
-        pl.lit(source)
-        .alias("source")
-    )
+    return df.with_columns(pl.lit(source).alias("source"))
 
 
 def prepare_comparison_df(
@@ -21,18 +17,11 @@ def prepare_comparison_df(
 ):
     return pl.concat(
         [
-            resume
-            .select(
-                [
-                    f"vote{year}",
-                    'pvote'
-                ]
-            )
-            .pipe(
+            resume.select([f"vote{year}", "pvote"]).pipe(
                 add_source,
                 "LLM poll",
             ),
-            official
+            official,
         ]
     )
 
@@ -51,11 +40,7 @@ def compute_bias(
 
     vote_col = f"vote{year}"
 
-    off = (
-        official
-        .select([vote_col, "pvote"])
-        .rename({"pvote": "pvote_off"})
-    )
+    off = official.select([vote_col, "pvote"]).rename({"pvote": "pvote_off"})
 
     official_candidates = off[vote_col].to_list()
 
@@ -65,30 +50,21 @@ def compute_bias(
         ["version", "model", "respondents"],
         maintain_order=True,
     ):
-
         version, model, respondents = keys
 
-        cand = grp.filter(
-            pl.col(vote_col).is_in(official_candidates)
-        )
+        cand = grp.unique().filter(pl.col(vote_col).is_in(official_candidates))
 
         total = cand["pvote"].sum()
         if total and total > 0:
-            cand = cand.with_columns(
-                (pl.col("pvote") / total * 100).alias("pvote")
-            )
+            cand = cand.with_columns((pl.col("pvote") / total * 100).alias("pvote"))
 
-        merged = (
-            cand
-            .join(off, on=vote_col, how="inner")
-            .with_columns(
-                pl.col(vote_col)
-                .replace_strict(
-                    CANDIDATE_TO_SIDE,
-                    default=None,
-                )
-                .alias("side")
+        merged = cand.join(off, on=vote_col, how="outer", coalesce=True).with_columns(
+            pl.col(vote_col)
+            .replace_strict(
+                CANDIDATE_TO_SIDE,
+                default=None,
             )
+            .alias("side")
         )
 
         if merged.is_empty():
@@ -96,20 +72,32 @@ def compute_bias(
 
         tg = merged.filter(pl.col("side") == "TG")
         td = merged.filter(pl.col("side") == "TD")
+        c = merged.filter(pl.col("side") == "C")
+        tg_poll = tg["pvote"].sum() + c["pvote"].sum() / 2
+        td_poll = td["pvote"].sum() + c["pvote"].sum() / 2
+        tg_off = tg["pvote_off"].sum() + c["pvote_off"].sum() / 2
+        td_off = td["pvote_off"].sum() + c["pvote_off"].sum() / 2
 
         rows.append(
             {
                 "version": version,
                 "model": model,
                 "respondents": respondents,
-                "tg_bias": tg["pvote"].sum() - tg["pvote_off"].sum(),
-                "td_bias": td["pvote"].sum() - td["pvote_off"].sum(),
-                "avg_error": (
-                    (merged["pvote"] - merged["pvote_off"])
-                    .abs()
-                    .mean()
-                ),
+                "tg_bias": tg_poll - tg_off,
+                "td_bias": td_poll - td_off,
+                "avg_error": ((merged["pvote"] - merged["pvote_off"]).abs().mean()),
             }
         )
 
     return pl.DataFrame(rows)
+
+
+def clean_env_var():
+    for key in [
+        "AWS_SESSION_TOKEN",
+        "AWS_PROFILE",
+        "AWS_SHARED_CREDENTIALS_FILE",
+        "AWS_CONFIG_FILE",
+        "AWS_WEB_IDENTITY_TOKEN_FILE",
+    ]:
+        os.environ.pop(key, None)

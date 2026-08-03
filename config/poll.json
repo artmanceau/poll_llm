@@ -1,9 +1,9 @@
 {
     "version": "4",
     "client": "openai",
-    "model": "qwen3-vl",
+    "model": "gemma4-26b-moe",
     "n_respondants":1000,
-    "workers": 5,
-    "year": 2022,
+    "workers": 32,
+    "year": 2027,
     "prompt_file":"prompts/poll_question.jinja2"
 }

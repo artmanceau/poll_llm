@@ -47,19 +47,12 @@ BLOCS = {
 
 
 CANDIDATE_TO_BLOC = {
-    candidate: bloc
-    for bloc, candidates in BLOCS.items()
-    for candidate in candidates
+    candidate: bloc for bloc, candidates in BLOCS.items() for candidate in candidates
 }
 
 
 # Total Gauche (TG) / Total Droite (TD): which blocs sum into each side.
-# A bloc absent from every list (here the Centre "C") is excluded from both
-# totals. To fold the centre into a side, add "C" to the relevant list.
-BLOC_SIDES = {
-    "TG": ["G", "CG"],
-    "TD": ["CD", "D"],
-}
+BLOC_SIDES = {"TG": ["G", "CG"], "TD": ["CD", "D"], "C": ["C"]}
 
 
 CANDIDATE_TO_SIDE = {
@@ -111,11 +104,11 @@ def adjust_color(hex_color, factor):
     g = int(hex_color[2:4], 16) / 255
     b = int(hex_color[4:6], 16) / 255
 
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    h, la, s = colorsys.rgb_to_hls(r, g, b)
 
-    l = max(0, min(1, l * factor))
+    la = max(0, min(1, la * factor))
 
-    r, g, b = colorsys.hls_to_rgb(h, l, s)
+    r, g, b = colorsys.hls_to_rgb(h, la, s)
 
     return "#{:02x}{:02x}{:02x}".format(
         int(r * 255),
@@ -126,7 +119,7 @@ def adjust_color(hex_color, factor):
 
 sondages_smoothed = pl.DataFrame(
     {
-        f"vote2022": CANDIDATES,
+        "vote2022": CANDIDATES,
         "pvote": [
             0.5555522914642451,
             0.999999999999226,

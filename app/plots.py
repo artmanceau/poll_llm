@@ -16,24 +16,15 @@ def aggregate_blocs(
     df: pl.DataFrame,
     year: int,
 ):
-
     return (
-        df
-        .with_columns(
-            pl.col(f"vote{year}")
-            .replace(CANDIDATE_TO_BLOC)
-            .alias("bloc")
-        )
+        df.with_columns(pl.col(f"vote{year}").replace(CANDIDATE_TO_BLOC).alias("bloc"))
         .group_by(
             [
                 "bloc",
                 "source",
             ]
         )
-        .agg(
-            pl.col("pvote")
-            .sum()
-        )
+        .agg(pl.col("pvote").sum())
     )
 
 
@@ -41,20 +32,10 @@ def global_bar_plot(
     df: pl.DataFrame,
     year: int,
 ):
-
     fig = go.Figure()
 
     for source in df["source"].unique():
-
-        pdf = (
-            df
-            .filter(
-                pl.col("source")
-                ==
-                source
-            )
-            .to_pandas()
-        )
+        pdf = df.filter(pl.col("source") == source).to_pandas()
 
         fig.add_trace(
             go.Bar(
@@ -72,8 +53,7 @@ def global_bar_plot(
                                 source,
                             )
                         ]
-                        for candidate
-                        in pdf[f"vote{year}"]
+                        for candidate in pdf[f"vote{year}"]
                     ],
                     pattern=dict(
                         shape=SOURCE_PATTERNS[source],
@@ -104,22 +84,18 @@ def bias_scatter(
 
     text = [
         f"{m} (n={r}), version {v}"
-        for m, r, v in zip(pdf["model"], pdf["respondents"], pdf['version'])
+        for m, r, v in zip(pdf["model"], pdf["respondents"], pdf["version"])
     ]
 
-    customdata = pdf[
-        ["version", "model", "respondents", "avg_error"]
-    ].to_numpy()
+    customdata = pdf[["version", "model", "respondents", "avg_error"]].to_numpy()
 
-    span = max(
-        1.0,
-        float(
-            pdf[["tg_bias", "avg_error"]]
-            .abs()
-            .to_numpy()
-            .max()
-        ),
-    ) * 1.15
+    span = (
+        max(
+            1.0,
+            float(pdf[["tg_bias", "avg_error"]].abs().to_numpy().max()),
+        )
+        * 1.15
+    )
 
     fig = go.Figure()
 
@@ -135,9 +111,7 @@ def bias_scatter(
                 color=pdf["respondents"],
                 colorscale="Reds",
                 showscale=True,
-                colorbar=dict(
-                    title="Respondents"
-                ),
+                colorbar=dict(title="Respondents"),
                 line=dict(width=1, color="#333333"),
             ),
             customdata=customdata,
@@ -177,21 +151,10 @@ def bias_scatter(
 def bloc_bar_plot(
     df: pl.DataFrame,
 ):
-
     fig = go.Figure()
 
     for source in df["source"].unique():
-
-        pdf = (
-            df
-            .filter(
-                pl.col("source")
-                ==
-                source
-            )
-            .to_pandas()
-        )
-
+        pdf = df.filter(pl.col("source") == source).to_pandas()
 
         fig.add_trace(
             go.Bar(
@@ -202,10 +165,7 @@ def bloc_bar_plot(
                 texttemplate="%{y:.1f}%",
                 textposition="outside",
                 marker=dict(
-                    color=[
-                        BLOC_COLORS[x]
-                        for x in pdf["bloc"]
-                    ],
+                    color=[BLOC_COLORS[x] for x in pdf["bloc"]],
                     pattern=dict(
                         shape=SOURCE_PATTERNS[source],
                         solidity=0.3,
@@ -213,7 +173,6 @@ def bloc_bar_plot(
                 ),
             )
         )
-
 
     fig.update_layout(
         barmode="group",

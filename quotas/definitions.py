@@ -1,29 +1,26 @@
-GENDER = {
-    'M': 'Homme',
-    'F': 'Femme'
-}
+GENDER = {"M": "Homme", "F": "Femme"}
 CSP = {
-    '1' : 'Agriculteurs',
-    '2' :' Artisans, commerçants et chefs d’entreprise',
-    '3' : 'Cadres et professions intellectuelles supérieures',
-    '4' : 'Professions intermédiaires',
-    '5' : 'Employés',
-    '6' : 'Ouvriers',
-    '7' : 'Retraités',
-    '9' : 'Autres inactifs',
+    "1": "Agriculteurs",
+    "2": " Artisans, commerçants et chefs d’entreprise",
+    "3": "Cadres et professions intellectuelles supérieures",
+    "4": "Professions intermédiaires",
+    "5": "Employés",
+    "6": "Ouvriers",
+    "7": "Retraités",
+    "9": "Autres inactifs",
 }
 AGE = {
-    'Y_GE65' : '65 ans ou plus',
-    'Y15T19' : 'De 15 à 19 ans',
-    'Y20T24' : 'De 20 à 24 ans',
-    'Y25T29' : 'De 25 à 29 ans',
-    'Y30T34' : 'De 30 à 34 ans',
-    'Y35T39' : 'De 35 à 39 ans',
-    'Y40T44' : 'De 40 à 44 ans',
-    'Y45T49' : 'De 45 à 49 ans',
-    'Y50T54' : 'De 50 à 54 ans',
-    'Y55T59' : 'De 55 à 59 ans',
-    'Y60T64' : 'De 60 à 64 ans'
+    "Y_GE65": "65 ans ou plus",
+    "Y15T19": "De 15 à 19 ans",
+    "Y20T24": "De 20 à 24 ans",
+    "Y25T29": "De 25 à 29 ans",
+    "Y30T34": "De 30 à 34 ans",
+    "Y35T39": "De 35 à 39 ans",
+    "Y40T44": "De 40 à 44 ans",
+    "Y45T49": "De 45 à 49 ans",
+    "Y50T54": "De 50 à 54 ans",
+    "Y55T59": "De 55 à 59 ans",
+    "Y60T64": "De 60 à 64 ans",
 }
 DEPARTEMENT = {
     "01": "Ain",
@@ -126,5 +123,5 @@ DEPARTEMENT = {
     "972": "Martinique",
     "973": "Guyane",
     "974": "La Réunion",
-    "976": "Mayotte"
+    "976": "Mayotte",
 }

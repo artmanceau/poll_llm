@@ -21,7 +21,7 @@ def _openai_chat(model, messages, schema, name):
     if _openai_client is None:
         _openai_client = OpenAI(
             api_key=os.environ["OPENAI_API_KEY"],
-            base_url="https://llm.lab.sspcloud.fr/api/v1/"
+            base_url="https://llm.lab.sspcloud.fr/api/v1/",
         )
 
     response = _openai_client.chat.completions.create(
@@ -46,22 +46,20 @@ def _ollama_chat(model, messages, schema, name):
         format=schema,
         think=False,
         messages=messages,
-        options={
-            "temperature": 0.8
-        },
+        options={"temperature": 0.8},
     )
     return json.loads(response["message"]["content"])
 
 
 def _chat(model, client, messages, schema, name):
     try:
-        provider = _openai_chat if client == 'openai' else _ollama_chat
+        provider = _openai_chat if client == "openai" else _ollama_chat
         res = provider(model, messages, schema, name)
         return res
     except Exception as e:
-        logger.error(f'Erreur sending request: {e}')
+        logger.error(f"Erreur sending request: {e}")
         # Return an empty compliant schema
-        return {schema['required'][0] : None}
+        return {schema["required"][0]: None}
 
 
 def converse(person, template, year, model, client, questionnaire=None):
@@ -80,10 +78,10 @@ def converse(person, template, year, model, client, questionnaire=None):
 
     # The rendered template carries the persona + election context.
     messages = [
-            {
-                "role": "system",
-                "content": render(template, person, year),
-            }
+        {
+            "role": "system",
+            "content": render(template, person, year),
+        }
     ]
 
     for step in steps:
@@ -111,17 +109,44 @@ def _make_key(model, year, person):
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def ask_with_mlflow(person, template, year, model, client, user_id=None, session_id=None, questionnaire=None):
+def ask_with_mlflow(
+    person,
+    template,
+    year,
+    model,
+    client,
+    user_id=None,
+    session_id=None,
+    questionnaire=None,
+):
     # Cache the whole conversation per persona (deterministic key, so it
     # hits despite the randomised candidate order inside a turn).
     with mlflow.tracing.context(session_id=session_id, user=user_id):
-        return ask(person, template, year, model, client, user_id=user_id, session_id=session_id, questionnaire=None)
+        return ask(
+            person,
+            template,
+            year,
+            model,
+            client,
+            user_id=user_id,
+            session_id=session_id,
+            questionnaire=None,
+        )
 
 
-def ask(person, template, year, model, client, user_id=None, session_id=None, questionnaire=None):
+def ask(
+    person,
+    template,
+    year,
+    model,
+    client,
+    user_id=None,
+    session_id=None,
+    questionnaire=None,
+):
     if session_id:
-        i = session_id.split('_')[-1]
+        i = session_id.split("_")[-1]
         if int(i) % 5 == 0:
-            logger.debug(f'Processing at {session_id}')
+            logger.debug(f"Processing at {session_id}")
     result = converse(person, template, year, model, client, questionnaire)
     return result

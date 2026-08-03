@@ -11,16 +11,12 @@ import json
 from quotas.get_quotas_data import (
     get_quotas,
 )
-from llm_utils.runner import (
-    run
-)
+from llm_utils.runner import run
 from prompts.prompts import (
     load_template,
     QUESTIONNAIRE_PATH,
 )
-from prompts.candidates import (
-    CANDIDATES
-)
+from prompts.candidates import CANDIDATES
 
 RESULT_PATH = "s3://arthurmanceau/poll_llm/results/"
 PROMPT_PATH = "s3://arthurmanceau/poll_llm/llm_prompts/"
@@ -54,23 +50,16 @@ def save_prompt_artifacts(template, version):
 def get_summary(df, year):
     n = len(df)
     return (
-        df
-        .group_by(f"vote{year}")
+        df.group_by(f"vote{year}")
         .agg(
-            pl.len()
-            .alias("vote"),
+            pl.len().alias("vote"),
         )
-        .sort(
-            "vote",
-            descending=True
-        ).with_columns(
-            pvote=(pl.col('vote') / n) * 100
-        )
+        .sort("vote", descending=True)
+        .with_columns(pvote=(pl.col("vote") / n) * 100)
     )
 
 
 async def main():
-
     start = time.time()
 
     load_dotenv()
@@ -86,33 +75,27 @@ async def main():
     logger.debug(
         f"Election présdientielle de {config['year']} (candidats: {CANDIDATES[config['year']]})",
     )
-    logger.info(
-        "Generating synthetic population based on quotas"
-    )
+    logger.info("Generating synthetic population based on quotas")
 
     # 1. Get representative sample
-    quotas = get_quotas(config['n_respondants'])
+    quotas = get_quotas(config["n_respondants"])
 
     logger.success(
         f"Generated {quotas.height} quota profiles (data from 2023)",
     )
 
     # 2. Make LLMs vote
-    template = load_template(
-        config['prompt_file']
-    )
+    template = load_template(config["prompt_file"])
 
-    logger.debug(
-        "Launching Ollama workers"
-    )
+    logger.debug("Launching Ollama workers")
 
     results = run(
         quotas,
         template,
-        config['year'],
-        config['model'],
-        config['client'],
-        config['workers']
+        config["year"],
+        config["model"],
+        config["client"],
+        config["workers"],
     )
 
     # 3. Save and process results
@@ -120,15 +103,11 @@ async def main():
         f"Received {len(results)} model responses",
     )
 
-    detailed = pl.DataFrame(
-        results
-    )
-    
-    summary = get_summary(
-        detailed, config['year']
-    )
+    detailed = pl.DataFrame(results)
 
-    logger.success(config['year'])
+    summary = get_summary(detailed, config["year"])
+
+    logger.success(config["year"])
     logger.success(summary)
 
     # Sample is stored
@@ -136,10 +115,10 @@ async def main():
         "s3://arthurmanceau",
         "poll_llm",
         "results",
-        config['version'],
-        config['model'],
-        str(config['year']),
-        str(config['n_respondants']),
+        config["version"],
+        config["model"],
+        str(config["year"]),
+        str(config["n_respondants"]),
         "detailed.csv",
     )
     detailed.write_csv(
@@ -151,17 +130,18 @@ async def main():
         credential_provider=pl.CredentialProviderAWS(
             profile_name="default",
             region_name="us-east-1",
-        ),)
+        ),
+    )
 
     # Aggregated results
     summary_path = posixpath.join(
         "s3://arthurmanceau",
         "poll_llm",
         "results",
-        config['version'],
-        config['model'],
-        str(config['year']),
-        str(config['n_respondants']),
+        config["version"],
+        config["model"],
+        str(config["year"]),
+        str(config["n_respondants"]),
         "summary.csv",
     )
     summary.write_csv(
@@ -173,12 +153,14 @@ async def main():
         credential_provider=pl.CredentialProviderAWS(
             profile_name="default",
             region_name="us-east-1",
-        ),)
+        ),
+    )
 
     # Save prompt + questionnaire for audit
-    save_prompt_artifacts(template, config['version'])
+    save_prompt_artifacts(template, config["version"])
 
     logger.info(f"Completed successfully in {time.time() - start:.2f}s")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

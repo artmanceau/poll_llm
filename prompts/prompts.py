@@ -3,29 +3,23 @@ import random
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
-
 from jinja2 import Template
-
 from prompts.candidates import CANDIDATES, CANDIDATES_T2
+
 
 QUESTIONNAIRE_PATH = Path(__file__).with_name("questionnaire.json")
 
 
 def load_template(path):
-
     with open(path) as f:
-        return Template(
-            f.read()
-        )
+        return Template(f.read())
 
 
 def _enum_schema(name, values):
     """A one-property JSON schema whose value is constrained to ``values``."""
     return {
         "type": "object",
-        "properties": {
-            name: {"enum": values}
-        },
+        "properties": {name: {"enum": values}},
         "required": [name],
         "additionalProperties": False,
     }
@@ -34,9 +28,7 @@ def _enum_schema(name, values):
 def _string_schema(name):
     return {
         "type": "object",
-        "properties": {
-            name: {"type": "string"}
-        },
+        "properties": {name: {"type": "string"}},
         "required": [name],
         "additionalProperties": False,
     }
@@ -52,6 +44,7 @@ def _string_schema(name):
 # remaining fields when it does (``on_stop``). ``converse`` just walks the
 # steps, so all the wording and branching lives in the JSON config.
 # --------------------------------------------------------------------------- #
+
 
 @dataclass
 class Step:
@@ -116,6 +109,10 @@ def _make_transform(mapping):
     return lambda v: mapping.get(v, v)
 
 
+def make_stop_when(target):
+    return lambda v: v == target
+
+
 def build_questionnaire(year, path=QUESTIONNAIRE_PATH):
     """Compile the questionnaire config for a given election ``year``.
 
@@ -130,24 +127,24 @@ def build_questionnaire(year, path=QUESTIONNAIRE_PATH):
 
     steps = []
     for raw in config["steps"]:
-        key = raw["key"].format(year=year, previous_year=year-5)
+        key = raw["key"].format(year=year, previous_year=year - 5)
 
         schema, options = _build_schema(
-            raw["schema"], key, year, year-5, extra_vote_options
+            raw["schema"], key, year, year - 5, extra_vote_options
         )
 
-        options_text = (
-            "\n".join(f"- {c}" for c in options) if options else ""
+        options_text = "\n".join(f"- {c}" for c in options) if options else ""
+        question = raw["question"].format(
+            year=year, previous_year=year - 5, options=options_text
         )
-        question = raw["question"].format(year=year, previous_year=year-5, options=options_text)
 
         stop = None
         if "stop_when" in raw:
             # Bind the value now so the closure is not tied to the loop var.
-            stop = lambda v, target=raw["stop_when"]: v == target
+            stop = make_stop_when(raw["stop_when"])
 
         on_stop = {
-            k.format(year=year, previous_year=year-5): value
+            k.format(year=year, previous_year=year - 5): value
             for k, value in raw.get("on_stop", {}).items()
         }
 
