@@ -4,41 +4,30 @@ import polars as pl
 BUCKET_ROOT = "s3://arthurmanceau/poll_llm/results"
 
 
-CANDIDATES = [
-    "Nathalie Arthaud (Lutte ouvrière)",
-    "Philippe Poutou (Nouveau Parti anticapitaliste)",
-    "Fabien Roussel (Parti communiste français)",
-    "Jean-Luc Mélenchon (La France insoumise)",
-    "Anne Hidalgo (Parti Socialiste)",
-    "Yannick Jadot (Europe Écologie Les Verts)",
-    "Emmanuel Macron (La République en marche)",
-    "Valérie Pécresse (Les Républicains)",
-    "Jean Lassalle (Résistons)",
-    "Nicolas Dupont-Aignan (Debout la France)",
-    "Marine Le Pen (Rassemblement national)",
-    "Éric Zemmour (Reconquête)",
-]
-
-
-BLOCS = {
-    "G": [
+CANDIDATES = {
+    "2022": [
         "Nathalie Arthaud (Lutte ouvrière)",
-        "Philippe Poutou (Nouveau Parti anticapitaliste)",
         "Fabien Roussel (Parti communiste français)",
-        "Jean-Luc Mélenchon (La France insoumise)",
-    ],
-    "CG": [
-        "Anne Hidalgo (Parti Socialiste)",
-        "Yannick Jadot (Europe Écologie Les Verts)",
-    ],
-    "C": [
         "Emmanuel Macron (La République en marche)",
         "Jean Lassalle (Résistons)",
-    ],
-    "CD": [
+        "Marine Le Pen (Rassemblement national)",
+        "Éric Zemmour (Reconquête)",
+        "Jean-Luc Mélenchon (La France insoumise)",
+        "Anne Hidalgo (Parti Socialiste)",
+        "Yannick Jadot (Europe Écologie Les Verts)",
         "Valérie Pécresse (Les Républicains)",
+        "Philippe Poutou (Nouveau Parti anticapitaliste)",
+        "Nicolas Dupont-Aignan (Debout la France)",
     ],
-    "D": [
+    "2027": [
+        "Nathalie Arthaud (Lutte ouvrière)",
+        "Fabien Roussel (Parti communiste français)",
+        "Jean-Luc Mélenchon (La France Insoumise)",
+        "Marine Tondelier (Les Écologistes)",
+        "Raphaël Glucksmann (Parti socialiste / Place Publique)",
+        "Gabriel Attal (Ensemble)",
+        "Édouard Philippe (Horizon)",
+        "Bruno Retailleau (Les Républicains)",
         "Nicolas Dupont-Aignan (Debout la France)",
         "Marine Le Pen (Rassemblement national)",
         "Éric Zemmour (Reconquête)",
@@ -46,21 +35,76 @@ BLOCS = {
 }
 
 
-CANDIDATE_TO_BLOC = {
-    candidate: bloc for bloc, candidates in BLOCS.items() for candidate in candidates
+BLOCS = {
+    2027: {
+        "G": [
+            "Nathalie Arthaud (Lutte ouvrière)",
+            "Fabien Roussel (Parti communiste français)",
+            "Jean-Luc Mélenchon (La France Insoumise)",
+        ],
+        "CG": [
+            "Marine Tondelier (Les Écologistes)",
+            "Raphaël Glucksmann (Parti socialiste / Place Publique)",
+        ],
+        "C": [
+            "Gabriel Attal (Ensemble)",
+            "Édouard Philippe (Horizon)",
+        ],
+        "CD": [
+            "Bruno Retailleau (Les Républicains)",
+        ],
+        "D": [
+            "Nicolas Dupont-Aignan (Debout la France)",
+            "Marine Le Pen (Rassemblement national)",
+            "Éric Zemmour (Reconquête)",
+        ],
+    },
+    2022: {
+        "G": [
+            "Nathalie Arthaud (Lutte ouvrière)",
+            "Fabien Roussel (Parti communiste français)",
+            "Philippe Poutou (Nouveau Parti anticapitaliste)",
+            "Jean-Luc Mélenchon (La France insoumise)",
+        ],
+        "CG": [
+            "Anne Hidalgo (Parti Socialiste)",
+            "Yannick Jadot (Europe Écologie Les Verts)",
+        ],
+        "C": [
+            "Emmanuel Macron (La République en marche)",
+            "Jean Lassalle (Résistons)",
+        ],
+        "CD": [
+            "Valérie Pécresse (Les Républicains)",
+        ],
+        "D": [
+            "Nicolas Dupont-Aignan (Debout la France)",
+            "Marine Le Pen (Rassemblement national)",
+            "Éric Zemmour (Reconquête)",
+        ],
+    },
 }
+
+
+def candidate_to_bloc(year):
+    return {
+        candidate: bloc
+        for bloc, candidates in BLOCS[year].items()
+        for candidate in candidates
+    }
 
 
 # Total Gauche (TG) / Total Droite (TD): which blocs sum into each side.
 BLOC_SIDES = {"TG": ["G", "CG"], "TD": ["CD", "D"], "C": ["C"]}
 
 
-CANDIDATE_TO_SIDE = {
-    candidate: side
-    for side, blocs in BLOC_SIDES.items()
-    for bloc in blocs
-    for candidate in BLOCS[bloc]
-}
+def candidate_to_side(year):
+    return {
+        candidate: side
+        for side, blocs in BLOC_SIDES.items()
+        for bloc in blocs
+        for candidate in BLOCS[year][bloc]
+    }
 
 
 CANDIDATE_COLORS = {
@@ -68,10 +112,16 @@ CANDIDATE_COLORS = {
     "Philippe Poutou (Nouveau Parti anticapitaliste)": "#E53935",
     "Fabien Roussel (Parti communiste français)": "#C00000",
     "Jean-Luc Mélenchon (La France insoumise)": "#C62828",
+    "Jean-Luc Mélenchon (La France Insoumise)": "#C62828",
     "Anne Hidalgo (Parti Socialiste)": "#E91E63",
+    "Raphaël Glucksmann (Parti socialiste / Place Publique)": "#E91E63",
     "Yannick Jadot (Europe Écologie Les Verts)": "#4CAF50",
+    "Marine Tondelier (Les Écologistes)": "#4CAF50",
     "Emmanuel Macron (La République en marche)": "#F4C542",
+    "Gabriel Attal (Ensemble)": "#F4C542",
+    "Édouard Philippe (Horizon)": "#F4C542",
     "Valérie Pécresse (Les Républicains)": "#0055A4",
+    "Bruno Retailleau (Les Républicains)": "#0055A4",
     "Jean Lassalle (Résistons)": "#4E342E",
     "Nicolas Dupont-Aignan (Debout la France)": "#1E88E5",
     "Marine Le Pen (Rassemblement national)": "#0B3D91",
@@ -119,7 +169,7 @@ def adjust_color(hex_color, factor):
 
 sondages_smoothed = pl.DataFrame(
     {
-        "vote2022": CANDIDATES,
+        "vote2022": CANDIDATES["2022"],
         "pvote": [
             0.5555522914642451,
             0.999999999999226,
@@ -134,7 +184,7 @@ sondages_smoothed = pl.DataFrame(
             23.1476141442254,
             8.886892008663699,
         ],
-        "source": ["sondages"] * len(CANDIDATES),
+        "source": ["sondages"] * len(CANDIDATES["2022"]),
     }
 )
 

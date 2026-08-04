@@ -1,6 +1,6 @@
 import polars as pl
 import os
-from config import CANDIDATE_TO_SIDE
+from config import candidate_to_side
 
 
 def add_source(
@@ -15,15 +15,21 @@ def prepare_comparison_df(
     official,
     year,
 ):
-    return pl.concat(
-        [
-            resume.select([f"vote{year}", "pvote"]).pipe(
-                add_source,
-                "LLM poll",
-            ),
-            official,
-        ]
-    )
+    if official.is_empty():
+        return resume.select([f"vote{year}", "pvote"]).pipe(
+            add_source,
+            "LLM poll",
+        )
+    else:
+        return pl.concat(
+            [
+                resume.select([f"vote{year}", "pvote"]).pipe(
+                    add_source,
+                    "LLM poll",
+                ),
+                official,
+            ]
+        )
 
 
 def compute_bias(
@@ -61,7 +67,7 @@ def compute_bias(
         merged = cand.join(off, on=vote_col, how="outer", coalesce=True).with_columns(
             pl.col(vote_col)
             .replace_strict(
-                CANDIDATE_TO_SIDE,
+                candidate_to_side(year),
                 default=None,
             )
             .alias("side")
@@ -94,6 +100,8 @@ def compute_bias(
 
 def clean_env_var():
     for key in [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
         "AWS_SESSION_TOKEN",
         "AWS_PROFILE",
         "AWS_SHARED_CREDENTIALS_FILE",

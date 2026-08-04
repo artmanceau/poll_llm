@@ -96,7 +96,8 @@ resume, detail = load_llm_data(
     detail_path,
 )
 
-official = load_official_results(year)
+
+official = load_official_results(year) if year == 2022 else pl.DataFrame()
 
 st.title("🗳️ Explorateur du sondage LLM")
 
@@ -166,7 +167,7 @@ with tab_main:
             label="Taux de participation prédit par le sondage",
             format="percent",
             delta_color="blue",
-            delta=ppar_pred - ppar,
+            delta=ppar_pred - ppar if ppar else None,
         )
 
     # ==========================
@@ -198,16 +199,17 @@ with tab_main:
         "Les intentions de vote sont déterminées en demandant aux répondants le candidat pour lequel ils comptent voter au premier tour"
     )
 
-    avg_error = (
-        resume_wo_abstention.join(official, on=f"vote{year}")
-        .rename({"pvote_right": "off", "pvote": "pred"})
-        .with_columns(avg_error=(pl.col("off") - pl.col("pred")).abs() / 100)
-        .select("avg_error")
-        .mean()
-        .item()
-    )
+    if year == 2022:
+        avg_error = (
+            resume_wo_abstention.join(official, on=f"vote{year}")
+            .rename({"pvote_right": "off", "pvote": "pred"})
+            .with_columns(avg_error=(pl.col("off") - pl.col("pred")).abs() / 100)
+            .select("avg_error")
+            .mean()
+            .item()
+        )
 
-    st.metric(value=avg_error, label="Erreur absolue moyenne", format="percent")
+        st.metric(value=avg_error, label="Erreur absolue moyenne", format="percent")
 
     if mode == "Candidats":
         fig = global_bar_plot(
@@ -387,6 +389,10 @@ with tab_main:
 
 with tab_bias:
     st.header(f"Biais des LLM — présidentielle {year}")
+
+    if year == "2027":
+        st.warning("Pas encore de résultats pour 2027")
+        st.stop()
 
     st.caption(
         "Chaque point est une simulation (modèle × version × répondants). "

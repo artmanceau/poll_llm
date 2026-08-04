@@ -2,7 +2,7 @@ import polars as pl
 import plotly.graph_objects as go
 
 from config import (
-    CANDIDATE_TO_BLOC,
+    candidate_to_bloc,
     BLOC_COLORS,
     SOURCE_PATTERNS,
     build_bar_colors,
@@ -17,7 +17,9 @@ def aggregate_blocs(
     year: int,
 ):
     return (
-        df.with_columns(pl.col(f"vote{year}").replace(CANDIDATE_TO_BLOC).alias("bloc"))
+        df.with_columns(
+            pl.col(f"vote{year}").replace(candidate_to_bloc(year)).alias("bloc")
+        )
         .group_by(
             [
                 "bloc",

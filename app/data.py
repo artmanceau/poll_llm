@@ -8,7 +8,8 @@ from config import (
 )
 from utils import clean_env_var
 
-candidates = [
+
+candidates_2022 = [
     "arthaud",
     "poutou",
     "roussel",
@@ -22,11 +23,15 @@ candidates = [
     "m_le_pen",
     "zemmour",
 ]
-columns = [f"C_{candidate}_processed" for candidate in candidates] + [
-    "source",
-    "date",
-    "sample_size",
-]
+
+
+def get_columns_poll_ds(candidates):
+    return [f"C_{candidate}_processed" for candidate in candidates] + [
+        "source",
+        "date",
+        "sample_size",
+    ]
+
 
 rename_dict = {
     "C_arthaud_processed": "Nathalie Arthaud (Lutte ouvrière)",
@@ -46,6 +51,7 @@ rename_dict = {
 storage_options = {
     "aws_access_key_id": st.secrets["AWS_ACCESS_KEY_ID"],
     "aws_secret_access_key": st.secrets["AWS_SECRET_ACCESS_KEY"],
+    "aws_session_token": "",
     "aws_region": "us-east-1",
     "aws_endpoint_url": "https://minio.lab.sspcloud.fr",
 }
@@ -60,8 +66,6 @@ fs = s3fs.S3FileSystem(
 
 @st.cache_data
 def list_results():
-    clean_env_var()
-
     files = fs.glob(f"{BUCKET_ROOT}/*/*/*/*/*.csv")
 
     rows = []
@@ -144,8 +148,6 @@ def load_all_summaries(year, min_version, min_n):
     so the bias tab can compare all LLM runs at once.
     """
 
-    clean_env_var()
-
     r = (
         list_results()
         .filter(pl.col("YEAR") == year)
@@ -195,14 +197,12 @@ def load_all_summaries(year, min_version, min_n):
 def load_official_results(
     year,
 ):
-    clean_env_var()
-
     polls = (
         pl.read_parquet(
             f"s3://arthurmanceau/poll_tracker/wiki/presidentiel/{year}/t1/polls.parquet",
             storage_options=storage_options,
         )
-        .select(columns)
+        .select(get_columns_poll_ds(candidates_2022))
         .rename(rename_dict)
         .filter(pl.col("source") == "Résultats")
         .select(list(rename_dict.values()))
