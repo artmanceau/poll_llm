@@ -277,7 +277,7 @@ with tab_main:
     with st.expander("💬 Raisons de vote"):
         candidat = st.selectbox(
             "Candidat choisi",
-            sorted(detail[f"vote{year}"].unique().to_list()),
+            sorted(detail[f"vote{year}"].unique().drop_nulls().to_list()),
             key="candidate_reason",
         )
 
